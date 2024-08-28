@@ -55,6 +55,12 @@
         #colorPicker {
             margin: 10px;
         }
+        .option-group {
+            margin: 10px 0;
+        }
+        #colorPicker, #skinSelector {
+            margin-left: 10px;
+        }
     </style>
 </head>
 <body>
@@ -67,7 +73,26 @@
         <button onclick="startGame('easy')">Fácil</button>
         <button onclick="startGame('medium')">Médio</button>
         <button onclick="startGame('hard')">Difícil</button>
-        <p>Cor da cobra: <input type="color" id="colorPicker" value="#2ecc71"></p>
+        <div class="option-group">
+            <label>
+                <input type="radio" name="snakeStyle" value="color" checked onchange="toggleSnakeStyle()"> Cor
+            </label>
+            <label>
+                <input type="radio" name="snakeStyle" value="skin" onchange="toggleSnakeStyle()"> Skin
+            </label>
+        </div>
+        <div id="colorOption" class="option-group">
+            <label for="colorPicker">Cor da cobra:</label>
+            <input type="color" id="colorPicker" value="#2ecc71">
+        </div>
+        <div id="skinOption" class="option-group" style="display: none;">
+            <label for="skinSelector">Skin da cobra:</label>
+            <select id="skinSelector">
+                <option value="skin1">Skin 1</option>
+                <option value="skin2">Skin 2</option>
+                <option value="skin3">Skin 3</option>
+            </select>
+        </div>
         <button onclick="showInstructions()">Instruções</button>
         <button onclick="showCredits()">Créditos</button>
     </div>
@@ -90,9 +115,9 @@
     </div>
     <div id="creditsScreen">
         <h2>Créditos</h2>
-        <p>Desenvolvido por: [Seu Nome]</p>
-        <p>Gráficos por: [Nome do Artista]</p>
-        <p>Música por: [Nome do Músico]</p>
+        <p>Desenvolvido por: Andrei Costa</p>
+        <p>Gráficos por: Andrei Costa</p>
+        <p>Música por: Andrei Costa</p>
         <button onclick="hideCredits()">Voltar</button>
     </div>
     <script>
@@ -116,13 +141,14 @@
 
         // Carregar texturas (substitua com suas próprias imagens)
         const snakeHeadImg = new Image();
-        snakeHeadImg.src = 'snake.png';
+        snakeHeadImg.src = 'Assets/Skins/snake.png';
         const snakeBodyImg = new Image();
-        snakeBodyImg.src = 'body.png';
+        snakeBodyImg.src = 'Assets/Skins/body.png';
         const foodImg = new Image();
-        foodImg.src = 'mouse_002.png';
+        foodImg.src = 'Assets/Food/mouse_002.png';
+
         const backgroundImg = new Image();
-        backgroundImg.src = 'background.png';
+        backgroundImg.src = 'Assets/Background/background.png';
 
         // Função para desenhar um círculo
         function drawCircle(x, y, radius, color) {
@@ -186,12 +212,62 @@
         }
 
         let snakeColor = '#2ecc71';
+        let snakeSkin = 'skin1';
+        let useSnakeSkin = false;
+
+        const snakeSkins = {
+            skin1: {
+                head: 'Assets/Skin/snake.png',
+                body: 'Assets/Skin/body.png'
+            },
+            skin2: {
+                head: 'Assets/Skin/snake.png',
+                body: 'Assets/Skin/body.png'
+            },
+            skin3: {
+                head: 'Assets/Skin/snake.png',
+                body: 'Assets/Skin/body.png'
+            }
+        };
+
+        function toggleSnakeStyle() {
+            const useColor = document.querySelector('input[name="snakeStyle"]:checked').value === 'color';
+            document.getElementById('colorOption').style.display = useColor ? 'block' : 'none';
+            document.getElementById('skinOption').style.display = useColor ? 'none' : 'block';
+            useSnakeSkin = !useColor;
+        }
+
+        function startGame(difficulty) {
+            isGameRunning = true;
+            resetGame();
+            document.getElementById('startScreen').style.display = 'none';
+            
+            switch(difficulty) {
+                case 'easy':
+                    gameSpeed = 150;
+                    break;
+                case 'medium':
+                    gameSpeed = 100;
+                    break;
+                case 'hard':
+                    gameSpeed = 50;
+                    break;
+            }
+
+            snakeColor = document.getElementById('colorPicker').value;
+            snakeSkin = document.getElementById('skinSelector').value;
+
+            if (useSnakeSkin) {
+                snakeHeadImg.src = snakeSkins[snakeSkin].head;
+                snakeBodyImg.src = snakeSkins[snakeSkin].body;
+            }
+        }
 
         function drawSnake() {
             snake.forEach((segment, index) => {
                 if (index === 0) {
                     // Desenhar cabeça da cobra
-                    if (snakeHeadImg.complete) {
+                    if (useSnakeSkin && snakeHeadImg.complete) {
                         ctx.save();
                         ctx.translate(segment.x * gridSize + gridSize / 2, segment.y * gridSize + gridSize / 2);
                         
@@ -217,7 +293,7 @@
                     }
                 } else {
                     // Desenhar corpo da cobra
-                    if (snakeBodyImg.complete) {
+                    if (useSnakeSkin && snakeBodyImg.complete) {
                         ctx.drawImage(snakeBodyImg, segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
                     } else {
                         ctx.fillStyle = snakeColor;
@@ -327,26 +403,6 @@
                 dy = 1;
                 direction = 'down';
             }
-        }
-
-        function startGame(difficulty) {
-            isGameRunning = true;
-            resetGame();
-            document.getElementById('startScreen').style.display = 'none';
-            
-            switch(difficulty) {
-                case 'easy':
-                    gameSpeed = 150;
-                    break;
-                case 'medium':
-                    gameSpeed = 100;
-                    break;
-                case 'hard':
-                    gameSpeed = 50;
-                    break;
-            }
-
-            snakeColor = document.getElementById('colorPicker').value;
         }
 
         function gameOver() {
